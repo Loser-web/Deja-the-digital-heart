@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEJA - Doctor • Pharmacist • Patient & ESIC Dhanwantari Portal</title>
+  
+  <!-- PWA Manifest & Mobile Meta Tags -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#00FF66" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            omni: {
+              green: '#00FF66',
+              bright: '#10F580',
+              dark: '#032312',
+              card: '#081C15',
+              border: '#00AA44',
+              red: '#EF4444'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Orbitron', 'sans-serif'],
+            tech: ['Rajdhani', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030B07;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.1) 0%, transparent 60%),
+        linear-gradient(to bottom, #030B07, #06150E, #020704);
+      background-attachment: fixed;
+      color: #F3F4F6;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .omni-card {
+      background: rgba(8, 28, 21, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 255, 102, 0.25);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(0, 255, 102, 0.05);
+    }
+    .omni-card:hover {
+      border-color: rgba(0, 255, 102, 0.45);
+    }
+
+    @keyframes blinkRed {
+      0%, 100% {
+        opacity: 1;
+        background-color: rgba(239, 68, 68, 0.35);
+        border-color: #EF4444;
+        box-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+      }
+      50% {
+        opacity: 0.2;
+        background-color: rgba(239, 68, 68, 0.05);
+        border-color: rgba(239, 68, 68, 0.2);
+        box-shadow: none;
+      }
+    }
+
+    .blink-expired {
+      animation: blinkRed 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#00FF66] selection:text-black">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#030D08]/95 backdrop-blur-xl border-b border-[#00FF66]/20 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20 gap-4">
+        <!-- Logo: DEJA with Omnitrix Dial -->
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="playSound('omnitrix')">
+          <div class="relative w-12 h-12 flex items-center justify-center animate-pulse">
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_12px_rgba(0,255,102,0.8)]">
+              <circle cx="50" cy="50" r="47" fill="#061A10" stroke="#10F580" stroke-width="5" />
+              <circle cx="50" cy="50" r="38" fill="#020B06" stroke="#008833" stroke-width="3" />
+              <polygon points="28,24 72,24 58,48 42,48" fill="#00FF66" />
+              <polygon points="28,76 72,76 58,52 42,52" fill="#00FF66" />
+              <circle cx="50" cy="50" r="4" fill="#FFFFFF" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-['Orbitron'] font-black tracking-widest text-xl sm:text-2xl text-[#00FF66]">DEJA</span>
+              <span class="bg-[#00FF66]/20 text-[#00FF66] text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#00FF66]/40 uppercase font-bold">HEALTH</span>
+            </div>
+            <span class="text-[11px] text-gray-400 font-medium">Doctor • Pharmacist • Patient</span>
+          </div>
+        </div>
+
+        <!-- Role Tabs -->
+        <nav class="hidden md:flex items-center gap-1.5 bg-[#06180F] p-1.5 rounded-2xl border border-white/10 text-xs font-bold">
+          <button onclick="setRole('patient')" id="tab-patient" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00FF66] text-black">
+            <i data-lucide="user" class="w-4 h-4"></i> Patient Guardian
+          </button>
+          <button onclick="setRole('doctor')" id="tab-doctor" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-300 hover:text-white">
+            <i data-lucide="stethoscope" class="w-4 h-4 text-emerald-400"></i> Doctor Console
+          </button>
+          <button onclick="setRole('pharmacist')" id="tab-pharmacist" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-300 hover:text-white">
+            <i data-lucide="building-2" class="w-4 h-4 text-cyan-400"></i> Pharmacist Dispatch
+          </button>
+          <button onclick="setRole('dhanvantari')" id="tab-dhanvantari" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-300 hover:text-white">
+            <i data-lucide="lock" class="w-4 h-4 text-[#00FF66]"></i> ESIC Dhanwantari Portal 🔒
+          </button>
+        </nav>
+
+        <!-- Right Controls -->
+        <div class="flex items-center gap-2 text-xs">
+          <!-- Install on Android button (PWA) -->
+          <button id="pwa-install-btn" onclick="installPwa()" class="hidden sm:flex items-center gap-1.5 bg-[#00FF66]/20 border border-[#00FF66]/50 text-[#00FF66] hover:bg-[#00FF66] hover:text-black px-3 py-2 rounded-xl font-bold transition-all" title="Install Native Android App">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+            <span>Install on Phone 📱</span>
+          </button>
+
+          <!-- Language Selector -->
+          <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-[#06180F] border border-emerald-500/30 text-white rounded-xl px-2.5 py-2 text-xs">
+            <option value="en">🇬🇧 English</option>
+            <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+            <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+            <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+            <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+            <option value="bn">🇮🇳 বাংলা (Bengali)</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="fr">🇫🇷 Français</option>
+          </select>
+
+          <!-- Emergency SOS Button -->
+          <a href="tel:1800112526" class="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-xl font-bold" title="ESIC 24/7 Medical Emergency Helpline">
+            <i data-lucide="phone-call" class="w-3.5 h-3.5 animate-bounce"></i>
+            <span>Helpline</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Mobile Tabs -->
+      <div class="flex md:hidden overflow-x-auto gap-2 py-2.5 border-t border-white/10 text-xs font-bold">
+        <button onclick="setRole('patient')" class="px-3 py-1.5 rounded-lg bg-[#00FF66] text-black shrink-0">Patient</button>
+        <button onclick="setRole('doctor')" class="px-3 py-1.5 rounded-lg bg-black/40 text-gray-300 shrink-0">Doctor</button>
+        <button onclick="setRole('pharmacist')" class="px-3 py-1.5 rounded-lg bg-black/40 text-gray-300 shrink-0">Pharmacist</button>
+        <button onclick="setRole('dhanvantari')" class="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-500/40 shrink-0">ESIC Dhanwantari 🔒</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+    
+    <!-- PATIENT VIEW -->
+    <div id="view-patient" class="space-y-6">
+      <!-- Patient Profile Strip -->
+      <div class="omni-card p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80" alt="Patient" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#00FF66]" />
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold text-white">Benjamin 'Ben' Tennyson</h2>
+              <span class="bg-emerald-950 text-[#00FF66] border border-emerald-500/40 text-xs font-mono font-bold px-2 py-0.5 rounded">IP No: 319084729104</span>
+            </div>
+            <p class="text-xs text-gray-300 mt-0.5">ESIC Hospital: <strong class="text-emerald-300">ESIC Super Specialty Hospital, Central Zone</strong></p>
+          </div>
+        </div>
+        <div class="text-xs text-right">
+          <span class="text-gray-400 block">Allergies:</span>
+          <span class="text-amber-300 font-bold">Sulfonamides, Penicillin (mild)</span>
+        </div>
+      </div>
+
+      <!-- Time Filter Tabs -->
+      <div class="flex flex-wrap items-center gap-2 p-2 bg-[#06180F] rounded-xl border border-[#00FF66]/20 text-xs font-bold">
+        <button onclick="filterTime('all')" class="time-tab px-4 py-2 rounded-lg bg-[#00FF66] text-black">🕒 All Times (5)</button>
+        <button onclick="filterTime('morning')" class="time-tab px-4 py-2 rounded-lg text-gray-300 hover:text-white">🌅 Morning</button>
+        <button onclick="filterTime('afternoon')" class="time-tab px-4 py-2 rounded-lg text-gray-300 hover:text-white">☀️ Afternoon</button>
+        <button onclick="filterTime('night')" class="time-tab px-4 py-2 rounded-lg text-gray-300 hover:text-white">🌙 Night</button>
+      </div>
+
+      <!-- Medicine Intake Cards Grid -->
+      <div id="medicine-grid" class="grid grid-cols-1 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- DOCTOR VIEW -->
+    <div id="view-doctor" class="hidden space-y-6">
+      <div class="omni-card p-6 rounded-2xl flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=300&q=80" alt="Doctor" class="w-14 h-14 rounded-2xl object-cover border-2 border-[#00FF66]" />
+          <div>
+            <h2 class="text-xl font-bold text-white">Dr. Ananya Sharma, MD</h2>
+            <span class="text-xs text-emerald-300">CMO • ESIC Super Specialty Hospital & Medical Board</span>
+          </div>
+        </div>
+        <button onclick="alert('Prescription modal active in full dashboard view')" class="px-4 py-2 rounded-xl bg-[#00FF66] text-black font-bold text-xs hover:bg-[#10F580]">
+          + Prescribe Medicine
+        </button>
+      </div>
+      <div id="doctor-medicine-list" class="space-y-4"></div>
+    </div>
+
+    <!-- PHARMACIST VIEW -->
+    <div id="view-pharmacist" class="hidden space-y-6">
+      <div class="omni-card p-6 rounded-2xl">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400"></i>
+          🔴 Expiry Date & Safety Audit Table
+        </h2>
+        <p class="text-xs text-gray-400 mt-1">Real-time surveillance of expired batches and high dosage prescriptions.</p>
+      </div>
+      <div id="pharmacist-table-container" class="omni-card rounded-2xl overflow-hidden">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- ESIC PROJECT DHANWANTARI CONFIDENTIAL PORTAL VIEW -->
+    <div id="view-dhanvantari" class="hidden space-y-6">
+      <div class="omni-card p-6 sm:p-8 rounded-3xl border border-[#00FF66]/40 space-y-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/40 text-[#00FF66] text-xs font-mono font-bold uppercase">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              ESIC Ministry of Labour & Employment • Confidentiality Protected
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-['Orbitron'] font-black text-[#00FF66]">ESIC Project Dhanwantari (धन्वन्तरि)</h1>
+            <p class="text-xs text-gray-300">Confidential Hospital Information & Electronic Health Record (EHR) System for ESIC Hospitals & Dispensaries</p>
+          </div>
+          <div class="p-3 rounded-2xl bg-emerald-950/80 border border-[#00FF66] flex items-center justify-center text-center">
+            <div>
+              <i data-lucide="shield-check" class="w-8 h-8 text-[#00FF66] mx-auto animate-pulse"></i>
+              <span class="text-[9px] font-mono font-bold text-emerald-300 block mt-1">AES-256 VAULT</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-black/60 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <i data-lucide="fingerprint" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+            <span><strong>Insured Person (IP) Pehchan Biometric Verification:</strong> All diagnostic scans, doctor clinical notes, and medicine logs are protected under ESIC Medical Confidentiality protocols.</span>
+          </div>
+          <button onclick="toggleDecryption()" id="decrypt-btn" class="px-4 py-2 rounded-xl bg-[#00FF66] text-black font-bold text-xs shrink-0 flex items-center gap-1.5">
+            <i data-lucide="key" class="w-3.5 h-3.5"></i> <span id="decrypt-text">Decrypt Confidential Record</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Confidential EHR Case Records -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="omni-card p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono bg-red-950 text-red-400 border border-red-500/40 px-2 py-0.5 rounded font-bold uppercase">
+              RESTRICTED CLASS-A
+            </span>
+            <span class="text-xs font-mono text-gray-400">IP No: 319084729104</span>
+          </div>
+          <h3 class="font-bold text-white text-base">Benjamin Tennyson (Insured Person)</h3>
+          <p class="text-xs text-emerald-300 font-mono">ESIC Super Specialty Hospital, Central Zone</p>
+          <div id="confidential-notes-1" class="p-3 rounded-xl bg-black/60 border border-white/5 text-xs text-gray-400 italic">
+            🔒 [Encrypted Clinical Record] Click 'Decrypt Confidential Record' to unlock attending CMO case notes.
+          </div>
+          <div class="text-[11px] text-gray-400 font-mono">
+            🛡️ Audit: Accessed 2026-08-19 by Dr. Ananya Sharma (MCI-DL-2018-88492)
+          </div>
+        </div>
+
+        <div class="omni-card p-5 rounded-2xl border border-emerald-500/30 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded font-bold uppercase">
+              ESIC MODEL HOSPITAL
+            </span>
+            <span class="text-xs font-mono text-gray-400">IP No: 110948275912</span>
+          </div>
+          <h3 class="font-bold text-white text-base">Radha Devi Patel (Dependent Beneficiary)</h3>
+          <p class="text-xs text-emerald-300 font-mono">ESIC Model Hospital & Occupational Disease Centre</p>
+          <div id="confidential-notes-2" class="p-3 rounded-xl bg-black/60 border border-white/5 text-xs text-gray-400 italic">
+            🔒 [Encrypted Clinical Record] Chronic care log with monthly quota biometric clearance.
+          </div>
+          <div class="text-[11px] text-gray-400 font-mono">
+            🛡️ Audit: Accessed 2026-08-18 by Dr. Kevin Levin (MCI-MH-2020-11938)
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-[#00FF66]/20 bg-[#020905] py-4 text-center text-xs text-gray-400">
+    DEJA HEALTH TELEMETRY V2.4 • Integrated with ESIC Project Dhanwantari Confidentiality Architecture
+  </footer>
+
+  <script>
+    // Register Service Worker for Android Installation
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration skipped', err));
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    function installPwa() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+        });
+      } else {
+        alert('To install DEJA on your Android phone:\n1. Open this page in Chrome on Android\n2. Tap the ⋮ menu in top right\n3. Tap "Add to Home Screen" or "Install App"');
+      }
+    }
+
+    // State
+    const medicines = [
+      {
+        id: "med-1",
+        name: "Pantoprazole 40mg",
+        dosage: 40,
+        unit: "mg",
+        maxSafe: 80,
+        time: "morning",
+        meal: "before_food",
+        image: "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=400&q=80",
+        expiry: "2027-11-30",
+        batch: "PAN-8891B",
+        instructions: "Take 1 tablet 30 minutes before breakfast with warm water."
+      },
+      {
+        id: "med-2",
+        name: "Paracetamol 650mg",
+        dosage: 650,
+        unit: "mg",
+        maxSafe: 1000,
+        time: "afternoon",
+        meal: "after_food",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80",
+        expiry: "2027-08-15",
+        batch: "PCM-5420K",
+        instructions: "Take after lunch if body temperature > 100°F."
+      },
+      {
+        id: "med-3",
+        name: "Ascoril-D Cough Relief Syrup",
+        dosage: 10,
+        unit: "ml",
+        maxSafe: 15,
+        time: "night",
+        meal: "after_food",
+        image: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=400&q=80",
+        expiry: "2027-05-20",
+        batch: "ASC-1920L",
+        instructions: "10 ml at bedtime. Measure with calibrated cup."
+      },
+      {
+        id: "med-4",
+        name: "Old Amoxicillin Suspension (EXPIRED DEMO)",
+        dosage: 10,
+        unit: "ml",
+        maxSafe: 15,
+        time: "morning",
+        meal: "after_food",
+        image: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?auto=format&fit=crop&w=400&q=80",
+        expiry: "2024-02-10", // EXPIRED
+        batch: "EXP-9920-OLD",
+        instructions: "DO NOT CONSUME. Batch expired."
+      },
+      {
+        id: "med-5",
+        name: "Extra-Strength Diphenhydramine (HIGH DOSE DEMO)",
+        dosage: 35,
+        unit: "ml",
+        maxSafe: 20, // HIGH DOSE
+        time: "night",
+        meal: "after_food",
+        image: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?auto=format&fit=crop&w=400&q=80",
+        expiry: "2027-09-01",
+        batch: "HIGH-DOSE-004",
+        instructions: "WARNING: High single dose. Clinical monitoring required."
+      }
+    ];
+
+    let currentRole = 'patient';
+    let currentFilter = 'all';
+    let isDecrypted = false;
+
+    function checkAlerts(med) {
+      const isExpired = new Date(med.expiry) <= new Date();
+      const isHighDosage = Number(med.dosage) > Number(med.maxSafe);
+      return {
+        shouldBlinkRed: isExpired || isHighDosage,
+        isExpired,
+        isHighDosage,
+        warningMessage: isExpired
+          ? "EXPIRED MEDICINE: Do not consume!"
+          : isHighDosage
+          ? `HIGH DOSAGE WARNING: Prescribed ${med.dosage}${med.unit} exceeds safe limit (${med.maxSafe}${med.unit})!`
+          : "Safe to consume"
+      };
+    }
+
+    function renderMedicines() {
+      const container = document.getElementById('medicine-grid');
+      const filtered = medicines.filter(m => currentFilter === 'all' || m.time === currentFilter);
+      
+      container.innerHTML = filtered.map(med => {
+        const alerts = checkAlerts(med);
+        return `
+          <div class="rounded-2xl p-5 transition-all ${
+            alerts.isExpired
+              ? 'border-2 border-red-500 bg-red-950/30 blink-expired'
+              : alerts.isHighDosage
+              ? 'border border-red-500/50 bg-[#0A1A12] shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+              : 'omni-card'
+          }">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-white/5 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded bg-black/40 text-emerald-300 font-bold uppercase">${med.time}</span>
+                <span class="px-2.5 py-1 rounded ${med.meal === 'before_food' ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'} font-semibold">
+                  ${med.meal === 'before_food' ? '🍽️ Before Food' : '🍽️ After Food'}
+                </span>
+              </div>
+              <div>
+                ${alerts.shouldBlinkRed 
+                  ? `<span class="px-3 py-1 rounded bg-red-950 text-red-400 border border-red-500 font-bold animate-pulse">⚠️ ${alerts.warningMessage}</span>`
+                  : `<span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">Exp: ${med.expiry}</span>`
+                }
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <img src="${med.image}" alt="${med.name}" class="w-16 h-16 rounded-xl object-cover border border-[#00FF66]/40 shrink-0" />
+                <div>
+                  <h3 class="text-lg font-bold text-white">${med.name}</h3>
+                  <div class="text-sm font-mono text-emerald-400 font-bold">${med.dosage} ${med.unit} <span class="text-xs text-gray-400 font-normal">(Safe Max: ${med.maxSafe} ${med.unit})</span></div>
+                  <p class="text-xs text-gray-300 mt-1">${med.instructions}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="speakInstruction('${med.name}', '${med.dosage} ${med.unit}', '${med.time}')" class="px-3 py-2 rounded-xl bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i> Listen
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderPharmacistTable() {
+      const container = document.getElementById('pharmacist-table-container');
+      container.innerHTML = `
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[#05180E] text-gray-400 uppercase font-mono border-b border-white/10">
+            <tr>
+              <th class="p-3.5">Medicine</th>
+              <th class="p-3.5">Dosage / Max</th>
+              <th class="p-3.5">Batch</th>
+              <th class="p-3.5">Expiry Status</th>
+              <th class="p-3.5 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            ${medicines.map(med => {
+              const alerts = checkAlerts(med);
+              return `
+                <tr class="hover:bg-emerald-950/20 ${alerts.isExpired ? 'bg-red-950/20' : ''}">
+                  <td class="p-3.5 font-bold text-white">${med.name}</td>
+                  <td class="p-3.5 font-mono text-emerald-300">${med.dosage} ${med.unit}</td>
+                  <td class="p-3.5 font-mono text-gray-400">${med.batch}</td>
+                  <td class="p-3.5">
+                    ${alerts.isExpired 
+                      ? '<span class="text-red-400 font-bold">🔴 EXPIRED</span>' 
+                      : alerts.isHighDosage 
+                      ? '<span class="text-amber-400 font-bold">⚠️ HIGH DOSE</span>'
+                      : '<span class="text-emerald-400">Valid</span>'
+                    }
+                  </td>
+                  <td class="p-3.5 text-right">
+                    ${alerts.isExpired 
+                      ? '<span class="text-red-400 font-bold">QUARANTINE</span>' 
+                      : '<span class="text-emerald-400 font-bold">VERIFIED</span>'
+                    }
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+      lucide.createIcons();
+    }
+
+    function setRole(role) {
+      currentRole = role;
+      ['patient', 'doctor', 'pharmacist', 'dhanvantari'].forEach(r => {
+        document.getElementById(`view-${r}`).classList.toggle('hidden', r !== role);
+      });
+      playSound('omnitrix');
+      if (role === 'pharmacist') renderPharmacistTable();
+    }
+
+    function filterTime(time) {
+      currentFilter = time;
+      renderMedicines();
+    }
+
+    function toggleDecryption() {
+      isDecrypted = !isDecrypted;
+      playSound('omnitrix');
+      
+      const note1 = document.getElementById('confidential-notes-1');
+      const note2 = document.getElementById('confidential-notes-2');
+      const btnText = document.getElementById('decrypt-text');
+
+      if (isDecrypted) {
+        note1.innerHTML = "🔓 <strong class='text-[#00FF66]'>Decrypted Clinical Log:</strong> Patient admitted with acute bronchial infection. Allergy to Sulfonamides confirmed. ESIC Super-specialty cashless referral pre-approved under Rule 57.";
+        note1.className = "p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-xs text-white";
+        
+        note2.innerHTML = "🔓 <strong class='text-[#00FF66]'>Decrypted Clinical Log:</strong> Fasting blood glucose 134 mg/dL. Monthly Metformin & Telmisartan quota biometric cleared through Pehchan.";
+        note2.className = "p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-xs text-white";
+        
+        btnText.innerText = "Lock Confidential Records";
+      } else {
+        note1.innerHTML = "🔒 [Encrypted Clinical Record] Click 'Decrypt Confidential Record' to unlock attending CMO case notes.";
+        note1.className = "p-3 rounded-xl bg-black/60 border border-white/5 text-xs text-gray-400 italic";
+        
+        note2.innerHTML = "🔒 [Encrypted Clinical Record] Chronic care log with monthly quota biometric clearance.";
+        note2.className = "p-3 rounded-xl bg-black/60 border border-white/5 text-xs text-gray-400 italic";
+        
+        btnText.innerText = "Decrypt Confidential Record";
+      }
+    }
+
+    function speakInstruction(name, dose, time) {
+      const text = `Take ${name}, dosage ${dose}, in the ${time}.`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playSound(type) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        }
+      } catch(e){}
+    }
+
+    // Init
+    renderMedicines();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
